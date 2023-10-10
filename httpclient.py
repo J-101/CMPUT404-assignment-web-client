@@ -36,8 +36,10 @@ class HTTPClient(object):
     #def get_host_port(self,url):
 
     def connect(self, host, port):
+        print("Connecting")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
+        print("Connected")
         return None
 
     def get_code(self, data):
@@ -68,14 +70,40 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        code = 500
-        body = ""
+        parsed_url = urllib.parse.urlparse(url)
+        host = parsed_url.hostname
+        print("Host", host)
+        port = parsed_url.port
+        print("Port", port)
+
+        if (port is "None"):
+            port = 80
+        print("Port", port)
+
+        path = parsed_url.path
+        if (not path):
+            path = "/"
+        print("Path", path)
+
+        self.connect(host, port)
+        request = f"GET {path} HTTP/1.1\r\n"
+        request += f"Host: {host}\r\n\r\n"
+        self.sendall(request)
+
+        data = self.recvall(self.socket)
+        self.close()
+
+        code = self.get_code(data)
+        body = self.get_body(data)
+        self.close()
+
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
         return HTTPResponse(code, body)
+
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
