@@ -44,9 +44,7 @@ class HTTPClient(object):
 
     def get_code(self, data):
         status = data.split('\r\n')[0]
-        # print("Status", status)
         code = int(status.split()[1])
-        # print("Code", code)
         return code
 
     def get_headers(self,data):
@@ -93,14 +91,14 @@ class HTTPClient(object):
 
         # Establish connection and send request
         self.connect(host, port)
-        request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\n\r\n"
+        request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\n\r\nConnection: close\r\n"
         self.sendall(request)
 
         data = self.recvall(self.socket)
-        self.close()
 
         code = self.get_code(data)
         body = self.get_body(data)
+        
         self.close()
 
         return HTTPResponse(code, body)
@@ -130,7 +128,7 @@ class HTTPClient(object):
 
         # Establish connection and send request
         self.connect(host, port)
-        request = f"POST {path} HTTP/1.1\r\nHost: {host}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {len(body_data)}\r\n"
+        request = f"POST {path} HTTP/1.1\r\nHost: {host}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {len(body_data)}\r\nConnection: close\r\n"
 
         request += "\r\n"
         request += body_data
@@ -138,10 +136,11 @@ class HTTPClient(object):
         self.sendall(request)
 
         data = self.recvall(self.socket)
-        self.close()
 
         code = self.get_code(data)
         body = self.get_body(data)
+        
+        self.close()
 
         return HTTPResponse(code, body)
 
